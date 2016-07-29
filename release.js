@@ -11,7 +11,7 @@ packager({
   // icon: '',
   overwrite: true,
   asar: true,
-  ignore: 'node_modules|src|\.gitignore|installer\.js|release\.js|webpack\.config\.js'
+  ignore: 'node_modules|src|.gitignore|installer.js|release.js|webpack.config.js'
 }, function done (err, appPath) {
   if (err) {
     throw new Error(err)

@@ -43,11 +43,11 @@ app.on('window-all-closed', () => {
 app.on('ready', () => {
   if (handleSquirrelEvent()) return
   mainWindow = new BrowserWindow({
-    width: 310,
-    minWidth: 250,
-    height: 360,
-    minHeight: 100,
-    webPreferences: { webSecurity: false }
+    width: 400,
+    height: 500,
+    resizable: false,
+    webPreferences: { webSecurity: false },
+    frame: false
   })
   mainWindow.loadURL(`file://${__dirname}/dist/index.html`)
   // mainWindow.webContents.openDevTools()

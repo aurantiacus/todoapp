@@ -7,10 +7,11 @@ var config = {
   entry: './src/index.jsx',
   output: {
     path: path.resolve(__dirname, 'dist'),
-    filename: 'bundle.js'
+    filename: 'bundle.js',
+    publicPath: DEBUG ? 'http://localhost:8080/dist' : null
   },
   resolve: {
-    extensions: ['', '.js', '.jsx', '.less']
+    extensions: ['', '.js', '.jsx', 'css', '.less']
   },
   devtool: DEBUG ? '#source-map' : null,
   module: {
@@ -22,9 +23,17 @@ var config = {
         query: { presets: ['es2015', 'react'] }
       },
       {
+        test: /\.css$/,
+        loader: 'style!css'
+      },
+      {
         test: /\.less$/,
         exclude: /node_modules/,
         loader: 'style!css!less'
+      },
+      {
+        test: /\.(eot|woff|woff2|ttf|svg|png|jpg)$/,
+        loader: 'url-loader?limit=3000&name=[name]-[hash].[ext]'
       }
     ]
   },

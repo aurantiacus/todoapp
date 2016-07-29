@@ -2,8 +2,8 @@ var electronInstaller = require('electron-winstaller')
 
 var resultPromise = electronInstaller.createWindowsInstaller({
   appDirectory: '../todoapp-win32-x64',
-  outputDirectory: '../todo-app-installer',
-  authors: 'miz',
+  outputDirectory: '../todoapp-installer',
+  authors: 'minoru',
   exe: 'todoapp.exe',
   version: '0.0.2'
 })

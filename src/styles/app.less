@@ -5,6 +5,7 @@
 
 .editing {
   [class^="edit_"] {
+    height: 26px;
     display: block;
     position: relative;
   }
@@ -12,4 +13,40 @@
   .view {
     display: none;
   }
+}
+
+.input {
+  height: 25px;
+  width: calc(100% - 3px);
+  cursor: text;
+  margin: 5px;
+}
+
+.list {
+  height: 390px;
+  overflow-y: auto;
+  background-color: red;
+}
+
+.label {
+  height: 100%;
+  vertical-align: middle;
+}
+
+html, body {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+}
+
+header {
+  -webkit-app-region: drag;
+  height: 55px;
+}
+
+footer {
+  position: fixed;
+  bottom: 0;
+  height: 30px;
+  width: 100%;
 }

@@ -3,19 +3,21 @@
 import React from 'react'
 import uuid from 'uuid'
 import classNames from 'classnames'
+import 'photon/dist/css/photon.css'
 
 var remote = require('electron').remote
 var fs = remote.require('fs')
+const { dialog } = remote.require('electron')
 
 require('../styles/app')
 
 export default class App extends React.Component {
   constructor (props) {
     super(props)
+    this.onClickImport = this.onClickImport.bind(this)
+    this.onClickExport = this.onClickExport.bind(this)
     this.onChangeInput = this.onChangeInput.bind(this)
     this.onKeyDownInput = this.onKeyDownInput.bind(this)
-    this.onClickCheckAll = this.onClickCheckAll.bind(this)
-    this.onClickClearDone = this.onClickClearDone.bind(this)
     this.onClickDisplay = this.onClickDisplay.bind(this)
     this.onChangeCheckbox = this.onChangeCheckbox.bind(this)
     this.onDoubleClickLabel = this.onDoubleClickLabel.bind(this)
@@ -23,6 +25,7 @@ export default class App extends React.Component {
     this.onKeyDownInputEdit = this.onKeyDownInputEdit.bind(this)
     this.onChangeInputEdit = this.onChangeInputEdit.bind(this)
     this.onClickDel = this.onClickDel.bind(this)
+    this.onClose = this.onClose.bind(this)
     this.state = {
       input: '',
       display: 'ALL',
@@ -47,6 +50,31 @@ export default class App extends React.Component {
     }
   }
 
+  onClickImport () {
+    dialog.showOpenDialog(
+      {
+        properties: ['openFile']
+      },
+      (filename) => {
+        fs.readFile(filename, (error, data) => {
+          if (error) return
+          this.setState({ todos: JSON.parse(data) })
+        })
+      }
+    )
+  }
+
+  onClickExport () {
+    dialog.showSaveDialog(
+      {
+
+      },
+      (filename) => {
+        fs.writeFile(filename, JSON.stringify(this.state.todos))
+      }
+    )
+  }
+
   onChangeInput (input) {
     this.setState({ input: input })
   }
@@ -63,25 +91,6 @@ export default class App extends React.Component {
       })
       this.setState({ input: '', todos: todos }, this.saveFile)
     }
-  }
-
-  onClickCheckAll () {
-    let checkedCnt = this.state.todos.filter((todo, index, array) => {
-      return todo.complete
-    }).length
-    let complete = checkedCnt !== this.state.todos.length
-    let todos = this.state.todos.map((todo) => {
-      todo.complete = complete
-      return todo
-    })
-    this.setState({ todos: todos }, this.saveFile)
-  }
-
-  onClickClearDone () {
-    let todos = this.state.todos.filter((todo, index, array) => {
-      return !todo.complete
-    })
-    this.setState({ todos: todos }, this.saveFile)
   }
 
   onClickDisplay (type) {
@@ -137,6 +146,11 @@ export default class App extends React.Component {
     this.setState({ todos: todos }, this.saveFile)
   }
 
+  onClose () {
+    let window = remote.getCurrentWindow()
+    window.close()
+  }
+
   saveFile () {
     fs.writeFile('./data.json', JSON.stringify(this.state.todos))
   }
@@ -144,83 +158,104 @@ export default class App extends React.Component {
   render () {
     return (
       <div>
-        <h1>todos</h1>
+        <header className={classNames('toolbar', 'toolbar-header')}>
+          <h1 className='title'>todoapp</h1>
+          <div className='toolbar-actions'>
+            <div className={classNames('btn-group')}>
+              <button
+                className={classNames('btn btn-default', {'active': this.state.display === 'TODO'})}
+                onClick={() => this.onClickDisplay('TODO')}>
+                TODO
+              </button>
+              <button
+                className={classNames('btn btn-default', {'active': this.state.display === 'DONE'})}
+                onClick={() => this.onClickDisplay('DONE')}>
+                DONE
+              </button>
+              <button
+                className={classNames('btn btn-default', {'active': this.state.display === 'ALL'})}
+                onClick={() => this.onClickDisplay('ALL')}>
+                ALL
+              </button>
+            </div>
+            <div className={classNames('btn-group')}>
+              <button
+                className={classNames('btn', 'btn-default')}
+                onClick={() => this.onClickImport()}>
+                <span className='icon icon-book-open'></span>
+              </button>
+              <button
+                className={classNames('btn', 'btn-default')}
+                onClick={() => this.onClickExport()}>
+                <span className='icon icon-export'></span>
+              </button>
+            </div>
+            <button
+              className={classNames('btn', 'btn-default', 'pull-right')}
+              onClick={() => this.onClose()}>
+              <span className='icon icon-cancel'></span>
+            </button>
+          </div>
+        </header>
         <div>
           <input
+            className={classNames('input', 'form-control')}
             type='text'
             placeholder='What needs to be done?'
             value={this.state.input}
             onChange={(event) => this.onChangeInput(event.target.value)}
             onKeyDown={(event) => this.onKeyDownInput(event)} />
         </div>
-        <div>
-          {
-            this.state.todos.filter((todo, index, array) => {
-              return !todo.complete
-            }).length
-          } items left
-        </div>
-        <div>
-          <button onClick={() => this.onClickCheckAll()}>#</button>
-          {(
-            this.state.todos.filter((todo, index, array) => {
-              return todo.complete
-            }).length > 0
-              ? <button onClick={() => this.onClickClearDone()}>
-                CLEAR DONE
-              </button> : ''
-          )}
-        </div>
-        <div>
-          <button onClick={() => this.onClickDisplay('TODO')}>
-            {(this.state.display === 'TODO') ? '*' : '' }
-            TODO
-          </button>
-          <button onClick={() => this.onClickDisplay('DONE')}>
-            {(this.state.display === 'DONE') ? '*' : '' }
-            DONE
-          </button>
-          <button onClick={() => this.onClickDisplay('ALL')}>
-            {(this.state.display === 'ALL') ? '*' : '' }
-            ALL
-          </button>
-        </div>
-        <div>
-          {
-            this.state.todos.map((todo) => {
-              if (this.state.display === 'ALL' ||
-                (this.state.display === 'DONE') === todo.complete) {
-                return (
-                  <div
-                    key={todo.id}
-                    className={classNames({'editing': this.state.editing === todo.id})}>
-                    <div className='view'>
+        <div className={classNames('list')}>
+          <ul className={classNames('list-group')}>
+            {
+              this.state.todos.map((todo) => {
+                if (this.state.display === 'ALL' ||
+                  (this.state.display === 'DONE') === todo.complete) {
+                  return (
+                    <li
+                      key={todo.id}
+                      className={classNames('list-group-item', {'editing': this.state.editing === todo.id})}>
+                      <div className='view'>
+                        <input
+                          className={classNames('pull-left')}
+                          type='checkbox'
+                          checked={todo.complete}
+                          onChange={() => this.onChangeCheckbox(todo.id)} />
+                        <label
+                          className='label'
+                          onDoubleClick={() => this.onDoubleClickLabel(todo)}>
+                          {todo.title}
+                        </label>
+                        <button
+                          className={classNames('btn', 'btn-default', 'pull-right')}
+                          onClick={() => this.onClickDel(todo.id)}>
+                          <span className={classNames('icon', 'icon-trash')}></span>
+                        </button>
+                      </div>
                       <input
-                        type='checkbox'
-                        checked={todo.complete}
-                        onChange={() => this.onChangeCheckbox(todo.id)} />
-                      <label
-                        onDoubleClick={() => this.onDoubleClickLabel(todo)}>
-                        {todo.title}
-                      </label>
-                      <button
-                        onClick={() => this.onClickDel(todo.id)}>
-                        x
-                      </button>
-                    </div>
-                    <input
-                      ref={'editField_' + todo.id }
-                      className={ 'edit_' + todo.id }
-                      value={this.state.editText}
-                      onBlur={(event) => this.onBlurInputEdit(event)}
-                      onKeyDown={(event) => this.onKeyDownInputEdit(event, todo)}
-                      onChange={(event) => this.onChangeInputEdit(event)} />
-                  </div>
-                )
-              }
-            })
-          }
+                        ref={'editField_' + todo.id}
+                        className={'edit_' + todo.id}
+                        value={this.state.editText}
+                        onBlur={(event) => this.onBlurInputEdit(event)}
+                        onKeyDown={(event) => this.onKeyDownInputEdit(event, todo)}
+                        onChange={(event) => this.onChangeInputEdit(event)} />
+                    </li>
+                  )
+                }
+              })
+            }
+          </ul>
         </div>
+        <footer className={classNames('toolbar', 'toolbar-footer')}>
+          <div className={classNames('toolbar-actions')}>
+            {
+              this.state.todos.filter((todo, index, array) => {
+                return !todo.complete
+              }).length
+            } items left
+          </div>
+        </footer>
       </div>
     )
   }
